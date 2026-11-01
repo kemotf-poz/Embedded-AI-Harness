@@ -172,6 +172,8 @@ SPECS = [
     dict(name="mqtt_status", method="GET", path="/api/mqtt/status", desc="Test broker state."),
     dict(name="mqtt_start", method="POST", path="/api/mqtt/start", desc="Start the mosquitto test broker."),
     dict(name="mqtt_stop", method="POST", path="/api/mqtt/stop", desc="Stop the test broker."),
+    dict(name="mqtt_log", method="GET", path="/api/mqtt/log",
+         desc="Test broker log since it last started, incl. each client's CONNECT line (id, clean session, keepalive)."),
     dict(name="mqtt_impair", method="POST", path="/api/mqtt/impair",
          desc="Impair one AP client's TCP traffic to the broker: cut (drop all), drop-large (drop packets >= bytes), drop-after (drop after a connection's first bytes).",
          props=p(client_ip=S_STR, mode=dict(**S_STR, enum=["cut", "drop-large", "drop-after"]),

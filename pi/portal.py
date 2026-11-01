@@ -2781,6 +2781,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._send_json({"ok": True, **_sdr.get_log()})
         elif path == "/api/mqtt/status":
             self._send_json({"ok": True, **mqtt_controller.status()})
+        elif path == "/api/mqtt/log":
+            self._send_json({"ok": True, **mqtt_controller.log()})
         elif path == "/api/tls-mirror/status":
             self._send_json({"ok": True, **tls_mirror_controller.status()})
         elif path == "/api/mqtt/impair/status":

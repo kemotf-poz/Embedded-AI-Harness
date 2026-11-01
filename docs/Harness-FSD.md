@@ -1408,6 +1408,7 @@ serial-interface mode.
 | POST | /api/sdr/stop | Terminate an in-progress capture (FR-028) |
 | **MQTT Broker** | | |
 | GET | /api/mqtt/status | Broker running state + port (FR-029) |
+| GET | /api/mqtt/log | Broker log since it last started (FR-029) |
 | POST | /api/mqtt/start | Start the mosquitto test broker (FR-029) |
 | POST | /api/mqtt/stop | Stop the broker (FR-029) |
 | **Composite** | | |
@@ -2215,8 +2216,16 @@ provisioned network path.
 | GET | /api/mqtt/status | `{running, port}` |
 | POST | /api/mqtt/start | Start the broker (idempotent); returns `{port}`. Fails with the listener named if port 1883 is held by a broker this service did not start |
 | POST | /api/mqtt/stop | Stop the broker |
+| GET | /api/mqtt/log | `{log}`: the broker's log since it last started, `""` if it never has |
 
 The broker is a portal-managed subprocess and stops when the portal restarts.
+
+The broker logs everything (`log_type all`) to `/tmp/mqtt-tester/mosquitto.log`,
+writing it itself as user `mosquitto`; the portal makes the directory
+`root:mosquitto` mode `0775` so it can. Each start begins a fresh log. Its
+`New client connected from <ip> as <id> (p2, c1, k30)` lines are the only
+place a DUT's client id, protocol, clean-session flag and keepalive are
+visible, so tests read them through `GET /api/mqtt/log` rather than ssh.
 
 Start reclaims the port from a **previous test broker** left behind by a portal
 restart, matching only processes launched with this service's own config path.
@@ -3744,6 +3753,7 @@ Add `--run-dut` to include tests that require a WiFi device under test.
 | WT-2000 | MQTT broker start reports running + port 1883 | MQTT Broker | No |
 | WT-2001 | MQTT broker status when stopped | MQTT Broker | No |
 | WT-2002 | MQTT broker start is idempotent | MQTT Broker | No |
+| WT-2005 | Broker log via the API shows a client's CONNECT parameters | MQTT Broker | No |
 | WT-2100 | Captive-portal provisioning of a WiFiManager DUT | Captive Portal | Yes |
 | WT-2101 | Provisioned DUT joins the testbench AP (appears as station) | Captive Portal | Yes |
 | WT-2102 | NAT-bridged AP: DUT reaches the LAN broker (192.168.0.x MQTT) | Captive Portal | Yes |
@@ -4203,6 +4213,7 @@ RFC2217 flashing (esptool from the host) needs no endpoint (§6.7).
 |--------|----------|-------------|
 | POST | `/api/mqtt/start` · `/stop` | Start / stop the mosquitto test broker |
 | GET | `/api/mqtt/status` | Running state + port |
+| GET | `/api/mqtt/log` | `{"log": "..."}`: the broker's log since it last started (FR-029) |
 | POST | `/api/mqtt/impair` | Impair one AP client's traffic to the broker `{"client_ip", "mode", "bytes"?, "duration_s"?}` (FR-040) |
 | POST | `/api/mqtt/impair/clear` | Lift one client's impairment `{"client_ip"}`, or all `{}` |
 | GET | `/api/mqtt/impair/status` | Active impairments |
