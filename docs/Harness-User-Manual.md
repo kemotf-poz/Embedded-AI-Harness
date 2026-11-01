@@ -678,10 +678,13 @@ tests without internet.
 curl -X POST http://$BENCH:8080/api/mqtt/start
 curl http://$BENCH:8080/api/mqtt/status
 curl -X POST http://$BENCH:8080/api/mqtt/stop
+curl http://$BENCH:8080/api/mqtt/log
 ```
 
-On the Pi, the broker logs every connection and packet (`log_type all`) to
-`/tmp/mqtt-tester/mosquitto.log`, replaced on each start.
+The broker logs every connection and packet (`log_type all`) to
+`/tmp/mqtt-tester/mosquitto.log` on the Pi, replaced on each start.
+`GET /api/mqtt/log` returns it, so a test can check a DUT's CONNECT line
+(`… as <client-id> (p2, c1, k30)`: protocol, clean session, keepalive).
 
 ### 10.1 Security test fixtures
 

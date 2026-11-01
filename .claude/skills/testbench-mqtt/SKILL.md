@@ -40,6 +40,9 @@ curl $TESTBENCH_URL/api/mqtt/status
 
 # Stop the MQTT broker
 curl -X POST $TESTBENCH_URL/api/mqtt/stop
+
+# Read the broker log since it last started
+curl $TESTBENCH_URL/api/mqtt/log
 ```
 
 ## MQTT Broker Details
@@ -57,6 +60,10 @@ curl -X POST $TESTBENCH_URL/api/mqtt/stop
    - `POST /api/mqtt/start` — start broker
    - Device connects to `192.168.4.1:1883`
    - Monitor device behavior via serial or UDP logs (see testbench-logging)
+   - `GET /api/mqtt/log` (`TestbenchDriver.mqtt_log()`) — check the device's
+     CONNECT line, `New client connected from <ip> as <id> (p2, c1, k30)`:
+     client id, protocol, clean session, keepalive. The log covers the
+     broker's current run only.
    - `POST /api/mqtt/stop` — stop broker when done
 
 2. **Test MQTT disconnect/reconnect:**

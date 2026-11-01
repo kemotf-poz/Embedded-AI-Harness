@@ -787,6 +787,40 @@ class TestMqttBroker:
             testbench.mqtt_start()      # shared infrastructure; put it back
         assert refused, f"{host}:1883 still accepts connections after stop"
 
+    def test_wt2005_log_shows_a_clients_connect_parameters(self, testbench):
+        """WT-2005: the broker log, read through the API, names a client's
+        CONNECT parameters.
+
+        The log is the only place a DUT's client id, clean-session flag and
+        keepalive are visible. A broker that cannot write it, or a log only
+        ssh can read, leaves a test timing the last-will delay instead.
+        """
+        try:
+            import paho.mqtt.client as mqtt
+        except ImportError:
+            pytest.skip("precondition unmet: paho-mqtt not installed here")
+
+        testbench.mqtt_start()
+        host = testbench.info()["host_ip"]
+        client_id = f"wt2005-{uuid.uuid4().hex[:8]}"
+        c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=client_id)
+        c.connect(host, 1883, keepalive=30)
+        c.loop_start()
+        try:
+            pattern = re.compile(
+                rf"New client connected from \S+ as {client_id} \(p\d, c1, k30")
+            log = ""
+            deadline = time.time() + 10
+            while time.time() < deadline and not pattern.search(log):
+                time.sleep(0.5)
+                log = testbench.mqtt_log()
+        finally:
+            c.loop_stop()
+            c.disconnect()
+        assert pattern.search(log), (
+            f"no CONNECT line for {client_id} (k30) in the broker log; "
+            f"its tail was: {log[-500:]!r}")
+
     @staticmethod
     def _roundtrip(host, topic, payload, timeout):
         """Publish and subscribe against the bench broker; return what came

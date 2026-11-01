@@ -246,6 +246,10 @@ class TestbenchDriver:
     def mqtt_status(self) -> dict:
         return self._api_get("/api/mqtt/status")
 
+    def mqtt_log(self) -> str:
+        """The broker's log since it last started; '' if it never has."""
+        return self._api_get("/api/mqtt/log")["log"]
+
     # ── MQTT broker link impairment (FR-040) ──────────────────────────
 
     def mqtt_impair(self, client_ip: str, mode: str, bytes: Optional[int] = None,

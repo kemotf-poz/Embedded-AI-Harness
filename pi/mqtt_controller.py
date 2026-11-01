@@ -7,6 +7,7 @@ on the testbench WiFi AP.
 
 import logging
 import os
+import pwd
 import subprocess
 import threading
 import time
@@ -21,6 +22,13 @@ MQTT_PORT = 1883
 WORK_DIR = "/tmp/mqtt-tester"
 MOSQUITTO_CONF = os.path.join(WORK_DIR, "mosquitto.conf")
 MOSQUITTO_LOG = os.path.join(WORK_DIR, "mosquitto.log")
+# What the broker prints before it opens MOSQUITTO_LOG (a bad config, a busy
+# port), kept for the start-failure message.
+MOSQUITTO_STDOUT = os.path.join(WORK_DIR, "mosquitto.stdout")
+# Started as root, mosquitto drops to this user before opening its log.
+BROKER_USER = "mosquitto"
+# root:<BROKER_USER's group>, group-writable, so the broker can create its log.
+WORK_DIR_MODE = 0o775
 
 # ---------------------------------------------------------------------------
 # Module state
@@ -36,7 +44,24 @@ _proc = None
 # ---------------------------------------------------------------------------
 
 def _ensure_work_dir():
+    """Create WORK_DIR and let the broker user write its log there."""
     os.makedirs(WORK_DIR, exist_ok=True)
+    try:
+        gid = pwd.getpwnam(BROKER_USER).pw_gid
+    except KeyError:
+        # No such user: mosquitto keeps running as root and can write anyway.
+        logger.warning("user %s not found; leaving %s root-owned",
+                       BROKER_USER, WORK_DIR)
+        return
+    os.chown(WORK_DIR, 0, gid)
+    os.chmod(WORK_DIR, WORK_DIR_MODE)
+
+
+def _remove(path):
+    try:
+        os.remove(path)
+    except FileNotFoundError:
+        pass
 
 
 def _kill_proc(proc, timeout=5.0):
@@ -93,23 +118,21 @@ def _port_owner() -> str:
 def broker_config(port: int) -> str:
     """The test broker's config: open, no auth, all interfaces.
 
-    It logs to stdout, which `start` sends to MOSQUITTO_LOG. `log_dest file`
-    does not work here: started as root, mosquitto drops to user `mosquitto`,
-    which cannot create a file in the root-owned WORK_DIR, so it logged
-    nothing and reported that only on its own stdout.
+    The broker writes MOSQUITTO_LOG itself, as user BROKER_USER, which is why
+    `_ensure_work_dir` makes WORK_DIR writable for that user's group.
     """
     return "\n".join([
         f"listener {port}",
         "allow_anonymous true",
-        "log_dest stdout",
+        f"log_dest file {MOSQUITTO_LOG}",
         "log_type all",
     ]) + "\n"
 
 
-def _log_tail(limit: int = 500) -> str:
+def _read(path: str) -> str:
     try:
-        with open(MOSQUITTO_LOG, "rb") as f:
-            return f.read()[-limit:].decode(errors="replace")
+        with open(path, "rb") as f:
+            return f.read().decode(errors="replace")
     except OSError:
         return ""
 
@@ -141,19 +164,22 @@ def start():
         with open(MOSQUITTO_CONF, "w") as f:
             f.write(broker_config(MQTT_PORT))
 
-        # The log file is opened here, as root, and handed over as stdout. A
-        # pipe nobody reads would also stall the broker once it filled.
-        with open(MOSQUITTO_LOG, "wb") as log:
+        # mosquitto appends to its log; removing it makes the log cover this
+        # start only. Stdout goes to a file: a pipe nobody reads would stall
+        # the broker once it filled.
+        _remove(MOSQUITTO_LOG)
+        with open(MOSQUITTO_STDOUT, "wb") as out:
             _proc = subprocess.Popen(
                 ["mosquitto", "-c", MOSQUITTO_CONF],
-                stdout=log, stderr=subprocess.STDOUT,
+                stdout=out, stderr=subprocess.STDOUT,
             )
 
         # Wait for it to initialise
         time.sleep(1.0)
         if _proc.poll() is not None:
             _active = False
-            raise RuntimeError(f"mosquitto failed to start: {_log_tail()}")
+            raise RuntimeError(
+                f"mosquitto failed to start: {_read(MOSQUITTO_STDOUT)[-500:]}")
 
         _active = True
         logger.info("MQTT broker started on port %d", MQTT_PORT)
@@ -184,3 +210,8 @@ def status():
             "running": running,
             "port": MQTT_PORT if running else None,
         }
+
+
+def log():
+    """The broker's log since it last started; '' if it never has."""
+    return {"log": _read(MOSQUITTO_LOG)}
