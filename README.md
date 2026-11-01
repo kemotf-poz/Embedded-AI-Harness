@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/python-3.11+-blue)
 ![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi-c51a4a)
 ![ESP32](https://img.shields.io/badge/ESP32-supported-green)
-![MCP](https://img.shields.io/badge/MCP-70%20tools-8a63d2)
+![MCP](https://img.shields.io/badge/MCP-78%20tools-8a63d2)
 
 *Spec to silicon, hands off.*
 
@@ -160,7 +160,7 @@ and turns everything into HTTP:
   when USB is busy.
 - **It presses the buttons.** GPIO wired to reset and boot forces download
   mode and rescues boot-looping boards with nobody in the room.
-- **Claude drives all of it** through 70 MCP tools or the bundled skills.
+- **Claude drives all of it** through 78 MCP tools or the bundled skills.
   The newest endpoints — serial write, bench reset, the slot access manager
   — are HTTP and skills only; the MCP surface has not caught up yet.
 
@@ -247,7 +247,7 @@ wt.http_get(f"http://{station['ip']}/status")
 
 ## 🤖 Driving It From Claude
 
-An MCP server exposes the whole API as **70 tools**, so Claude Desktop or
+An MCP server exposes the whole API as **78 tools**, so Claude Desktop or
 Claude Code can operate the bench conversationally — "flash this to slot 1
 and tell me why it's crashing". Pure Python standard library, so there's
 nothing to `pip install`. For Claude Desktop, drag

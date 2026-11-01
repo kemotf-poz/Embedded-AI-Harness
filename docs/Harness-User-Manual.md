@@ -1051,7 +1051,7 @@ Most `testbench-*` skills assume the bench is at `$BENCH`, or the IP in
 
 ### 15.2 MCP server
 
-`mcp/testbench_mcp.py` exposes the whole HTTP API as **70 MCP tools**, so an MCP
+`mcp/testbench_mcp.py` exposes the whole HTTP API as **78 MCP tools**, so an MCP
 client can drive the bench conversationally. It's a thin stdio proxy: each tool
 maps 1:1 to an endpoint from a single `SPECS` table. It is **pure Python standard
 library — no `pip install`** — so it runs anywhere Python 3 does.
