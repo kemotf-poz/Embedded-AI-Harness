@@ -3394,7 +3394,7 @@ How clients other than raw HTTP reach the API.
 
 An MCP (Model Context Protocol) server (`mcp/testbench_mcp.py`) exposes the HTTP
 API as MCP tools, so an MCP client (Claude Desktop, Claude Code, …) can drive the
-bench directly. It is a thin **stdio proxy** — 70 tools, one per endpoint, held
+bench directly. It is a thin **stdio proxy** — 78 tools, one per endpoint, held
 in a single `SPECS` table that mirrors the API: `GET` args become query params,
 `POST`/`DELETE` args a JSON body, and `flash`/`ota`/`firmware_upload` upload local
 files. Adding an API endpoint is one row in `SPECS`. The two udev callbacks
@@ -3422,7 +3422,7 @@ claude mcp add testbench --env TESTBENCH_URL=http://<host>:8080 \
 claude mcp list      # → testbench … ✔ Connected
 ```
 
-The health check completes the MCP handshake and enumerates all 70 tools; live
+The health check completes the MCP handshake and enumerates all 78 tools; live
 tool calls (`sdr_status`, `testbench_devices`, `mqtt_status`, …) return real
 bench data. Tools surface to the client as `mcp__testbench__<name>`.
 
@@ -4236,7 +4236,7 @@ RFC2217 flashing (esptool from the host) needs no endpoint (§6.7).
 
 ### D.15 MCP Interface
 
-`mcp/testbench_mcp.py` exposes this entire API as **70 MCP tools** (one per
+`mcp/testbench_mcp.py` exposes this entire API as **78 MCP tools** (one per
 endpoint, from a single `SPECS` table) for MCP clients such as Claude Desktop and
 Claude Code. It is a thin **stdio proxy** that runs on the client machine and
 reaches the bench via `TESTBENCH_URL`: `GET` args become query params, `POST`/`DELETE`
