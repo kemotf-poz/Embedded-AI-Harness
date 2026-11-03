@@ -140,7 +140,10 @@ why item 4's program prints one.
 ### Deliverables — what Phase 2 hands to Phase 3
 
 All of it lives in `testing/test-plan.yaml` as dated observations; none of it
-is prose in a document nobody reads again.
+is prose in a document nobody reads again. Record a result on a plan entry —
+a bring-up test's `status`, `commit` and reason — with the plan-entry helper
+(`../build/scripts/plan_entry.py`, see `../build/SKILL.md` §1), never by a
+hand-made edit script.
 
 | Deliverable | Content |
 |---|---|

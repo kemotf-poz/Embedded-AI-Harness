@@ -26,13 +26,14 @@ jobs:
       # Both versions are pinned. An unpinned ruff turns this gate red on a rule
       # selection nobody chose — the same `ruff check .` has reported both 36 and
       # 416 errors on this tree across versions. Bump deliberately, with the
-      # fixes in the same commit.
-      - run: pip install 'pytest==8.*' 'ruff==0.16.1'
+      # fixes in the same commit. PyYAML is the parser of the build skill's
+      # plan_entry.py; Raspberry Pi OS ships it as python3-yaml.
+      - run: pip install 'pytest==8.*' 'ruff==0.16.1' 'pyyaml==6.*'
 
       - name: Lint
         run: ruff check .
 
-      # The host tier is stdlib-only apart from pytest. Do not install
+      # The host tier is stdlib-only apart from pytest and PyYAML. Do not install
       # requirements-dev.txt here: it pulls smbus2 and paho-mqtt, which only the
       # Pi needs, and a failure to build them would look like a test failure.
       - name: Host tests
