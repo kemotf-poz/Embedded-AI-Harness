@@ -136,6 +136,30 @@ practice: the plan looks finished while nothing is verified.
 - **The journey tests are the gate** for every hardware session: while a
   journey step fails, later results are unreadable — a dozen reds, one cause.
 
+### Recording a result — edit the plan entry with the helper
+
+Every change to one plan entry — a result (`status`, its reason, the
+`commit`), `impl:` once the executable exists, any other field — goes through
+the helper shipped beside this skill, never a hand-made edit script:
+
+```bash
+python3 <this skill's dir>/scripts/plan_entry.py show TC-MQTT-01
+python3 <this skill's dir>/scripts/plan_entry.py set TC-MQTT-01 \
+    status=failed commit=$(git rev-parse --short HEAD) \
+    reason="broker refused the connection: CONNACK 5"
+python3 <this skill's dir>/scripts/plan_entry.py set TC-MQTT-01 \
+    status=successful --append reason="fixed in 2b3c4d5"
+```
+
+It finds the entry by `id:` wherever it sits, changes only the lines of the
+fields it sets, folds a value YAML would misread into a `>-` block, and checks
+`status` against the values in `references/test-lifecycle.md` §1 (plus
+`deprecated` / `superseded`). It parses the whole new plan and reads the entry
+back before writing; on any refusal it prints why, exits non-zero and writes
+nothing. `--plan <path>` overrides the default `testing/test-plan.yaml`. It
+needs PyYAML (`python3-yaml`). Edit the plan by hand only to restructure it —
+declaring a new entry, retiring one, or reorganising the file.
+
 Test design (the two opening questions, the four kinds in three waves, the two
 shapes — atomic and workflow — and their numbering, seams, controllability):
 `references/test-design.md`. Status semantics, computed blocking, the retrofit,

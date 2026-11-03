@@ -2,8 +2,8 @@
 
 These tests import the Pi's modules directly and exercise pure logic, so they run
 on a laptop in milliseconds. They take no `--wt-url` and must never touch
-hardware, the network, or the filesystem — if a test here needs any of those, it
-belongs in the bench tier instead.
+hardware, the network, or the filesystem outside pytest's own `tmp_path` — if a
+test here needs any of those, it belongs in the bench tier instead.
 """
 import pathlib
 import sys
